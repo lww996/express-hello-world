@@ -1,61 +1,73 @@
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 3001;
+const express = require('express')
+const app = express()
+app.use(express.json())
 
-app.get("/", (req, res) => res.type('html').send(html));
+let notes = [
+  {
+    id: 1,
+    content: "HTML is easy-",
+    date: "2022-05-30T17:30:31.098Z",
+    important: true
+  },
+  {
+    id: 2,
+    content: "Browser can execute only Javascript",
+    date: "2022-05-30T18:39:34.091Z",
+    important: false
+  },
+  {
+    id: 3,
+    content: "GET and POST are the most important methods of HTTP protocol",
+    date: "2022-05-30T19:20:14.298Z",
+    important: true
+  }
+]
 
-const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+function generateId() {
+  let maxId = notes.length > 0 ? Math.max(...notes.map(item => item.id)) : 0
+  return maxId + 1
+}
 
-server.keepAliveTimeout = 120 * 1000;
-server.headersTimeout = 120 * 1000;
+app.get('/', (req, res) => {
+  res.send('<h1>helle world</h1>')
+})
 
-const html = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello from Render!</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script>
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          disableForReducedMotion: true
-        });
-      }, 500);
-    </script>
-    <style>
-      @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
-      @font-face {
-        font-family: "neo-sans";
-        src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
-        font-style: normal;
-        font-weight: 700;
-      }
-      html {
-        font-family: neo-sans;
-        font-weight: 700;
-        font-size: calc(62rem / 16);
-      }
-      body {
-        background: white;
-      }
-      section {
-        border-radius: 1em;
-        padding: 1em;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin-right: -50%;
-        transform: translate(-50%, -50%);
-      }
-    </style>
-  </head>
-  <body>
-    <section>
-      Hello from Render!
-    </section>
-  </body>
-</html>
-`
+app.get('/api/notes', (req, res) => {
+  res.json(notes)
+})
+
+app.get('/api/notes/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const note = notes.find(note => note.id === id)
+  if (note) {
+    res.json(note)
+  } else {
+    res.status(404).end()
+  }
+})
+
+app.delete('/api/notes/:id', (req, res) => {
+  const id = Number(req.params.id)
+  notes  = notes.filter(note => note.id !== id)
+  res.status(204).end()
+})
+
+app.post('/api/notes', (req, res) => {
+  if (!req.body.content) {
+    return res.status(400).json({
+      error: 'content missing'
+    })
+  }
+
+  let note = {
+    id: generateId(),
+    content: req.body.content
+  }
+  notes = notes.concat(note)
+  res.json(notes)
+})
+
+
+const PORT = 3001
+app.listen(PORT)
+console.log(`Server running on port ${PORT}`)
